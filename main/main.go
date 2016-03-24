@@ -10,7 +10,7 @@ func main() {
    request := cloudwatch.ParseArgs()
    fmt.Printf("request = %v\n", request)
    fmt.Printf("metrics = %v\n", *request.Metrics)
-   cloudwatch.DoRequest(request)
+   request.Do()
 
    os.Exit(0)
 

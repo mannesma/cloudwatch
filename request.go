@@ -1,6 +1,7 @@
 package cloudwatch
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -12,11 +13,21 @@ import (
 )
 
 type Metric struct {
-   MetricName *string                   `json:"MetricName"`
    Namespace *string                    `json:"Namespace"`
+   MetricName *string                   `json:"MetricName"`
    Statistics []*string                 `json:"Statistics"`
    Dimensions []*cloudwatch.Dimension   `json:"Dimensions,omitempty"`
    Unit *string                         `json:"Unit,omitempty"`
+}
+
+func (m *Metric) String() string {
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("%s.%s", *m.Namespace, *m.MetricName))
+	for _, d := range m.Dimensions {
+		buf.WriteString(fmt.Sprintf(".%s:%s", *d.Name, *d.Value))
+	}
+	
+	return buf.String()
 }
 
 type MetricList []Metric
@@ -96,23 +107,24 @@ func ParseArgs() *Request {
    return r
 }
 
-func DoRequest(request *Request) {
+func (r *Request) Do() {
    // Set up common items in cloudwatch input struct
    params := &cloudwatch.GetMetricStatisticsInput{
-      StartTime: aws.Time(*request.StartTime), // Required
-      Period:    aws.Int64(request.Period),    // Required
-      EndTime:   aws.Time(*request.EndTime),   // Required
+      StartTime: aws.Time(*r.StartTime), // Required
+      Period:    aws.Int64(r.Period),    // Required
+      EndTime:   aws.Time(*r.EndTime),   // Required
    }
 
    // Make a new cloudwatch session
    svc := cloudwatch.New(session.New())
 
-   for _, m := range *request.Metrics {
+   for _, m := range *r.Metrics {
       params.Namespace = m.Namespace
       params.MetricName = m.MetricName
       params.Statistics = m.Statistics
       params.Dimensions = m.Dimensions
       params.Unit = m.Unit
+		fmt.Printf("metric = %s\n", m.String())
       resp, err := svc.GetMetricStatistics(params)
       if err != nil {
          fmt.Printf("Error: Failed to get metric data: %s\n", err)
