@@ -1,7 +1,7 @@
 package cloudwatch
 
 import (
-	// "fmt"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -14,6 +14,8 @@ func TestMe(t *testing.T) {
 	ts3 := ts2.Add(60*time.Second)
 	ts4 := ts3.Add(60*time.Second)
 	ts5 := ts4.Add(60*time.Second)
+
+	fmt.Printf("%s\n", ts1.Format(time.RFC3339))
 
 	var metric1 string = "AWS/EC2.CPUUtilization.InstanceId:i-12345678.Average"
 	var metric2 string = "AWS/EC2.CPUUtilization.InstanceId:i-23456789.Average"
@@ -35,4 +37,5 @@ func TestMe(t *testing.T) {
 	d.AddPoint(ts5, metric3, 13.15)
 
 	d.PrintPoints()
+	d.PrintCSV(",")
 }
