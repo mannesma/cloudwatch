@@ -20,6 +20,7 @@ type Metric struct {
    Unit *string                         `json:"Unit,omitempty"`
 }
 
+// Print out just fixed part of request
 func (m *Metric) String() string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("%s.%s", *m.Namespace, *m.MetricName))
