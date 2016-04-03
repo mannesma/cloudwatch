@@ -33,11 +33,8 @@ func (ts TimeSlice) Sort() {
 }
 
 func (ts TimeSlice) AppendFromSet(inset TimeSet) TimeSlice {
-	fmt.Printf("ts len = %d\n", len(ts))
 	for key, _ := range inset {
-		fmt.Printf("Found key %v\n", key)
 		ts = append(ts, key)
-		fmt.Printf("ts len = %d\n", len(ts))
 	}
 	return ts
 }
@@ -82,15 +79,9 @@ func (d *Datapoints) AddPoint(time time.Time,
 
 func (d *Datapoints) PrintPoints() {
 	var times TimeSlice
-	fmt.Printf("Before sort\n")
 	times = times.AppendFromSet(d.Times)
 
-	for _, t := range times {
-		fmt.Printf("%v\n", t)
-	}
-
 	times.Sort()
-	fmt.Printf("After sort\n")
 	times.Print(",", time.RFC3339)
 	fmt.Printf("\n")
 
@@ -99,14 +90,6 @@ func (d *Datapoints) PrintPoints() {
 		for tm, val := range time_map {
 			fmt.Printf("tm = %v, val = %f\n", tm, val)
 		}
-
-		// Try other method
-		//for _, tm := range times {
-		//	if val, ok := time_map[tm]; ok {
-		//		fmt.Printf("
-		//	} else {
-		//	}
-		//}
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"io/ioutil"
+	"reflect"
 	"time"
 )
 
@@ -102,13 +103,13 @@ func ParseArgs() *Request {
       return nil
    }
 
-   fmt.Printf("metricFile = %s\n", *metricFile)
    r.Metrics = parseMetrics(*metricFile)
 
    return r
 }
 
 func (r *Request) Do() {
+	data := MakeDatapoints()
    // Set up common items in cloudwatch input struct
    params := &cloudwatch.GetMetricStatisticsInput{
       StartTime: aws.Time(*r.StartTime), // Required
@@ -125,15 +126,25 @@ func (r *Request) Do() {
       params.Statistics = m.Statistics
       params.Dimensions = m.Dimensions
       params.Unit = m.Unit
-		fmt.Printf("metric = %s\n", m.String())
       resp, err := svc.GetMetricStatistics(params)
       if err != nil {
          fmt.Printf("Error: Failed to get metric data: %s\n", err)
          continue
       }
-      // TODO: Add to csv structure later
-      fmt.Println(resp)
+
+		for _, dp := range resp.Datapoints {
+			ts := *dp.Timestamp
+			for _, stat := range m.Statistics {
+				full_name := fmt.Sprintf("%s.%s", m.String(), *stat)
+				r := reflect.ValueOf(dp)
+				f := reflect.Indirect(r).FieldByName(*stat)
+				val := reflect.Indirect(f).Float()
+				data.AddPoint(ts, full_name, val)
+			}
+		}
+
    }
 
+	data.PrintCSV(",")
 }
 
